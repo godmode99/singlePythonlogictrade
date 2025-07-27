@@ -1,16 +1,17 @@
 อธิบายการทำงานของระบบเทรด
 ความต้องการ
 ลำดับการทำงานแบบ async/await มีการ try/catch แสดงการทำงาน process/success/error ผ่าน log แบบ best practice
+การตั้งชื่อ order_id ใช้ symbol+unix time เช่น xauusdm1752322800
 
 0. python main.py โดยใช้ค่าจาก config.json
-1. fetch OHLCV, ยอดเงินในบัญชี balance data จาก mt5
-2. calculate indicators โดยใช้ data จาก raw_ohlcv
-3. detect price pattern โดยใช้ data จาก raw_ohlcv
-4. identify regime โดยใช้ data จาก indicators และ price pattern
-5. confidence scoring โดยใช้ data จาก indicators และ price pattern
-6. select logic trade จาก regime หา entry/tp/sl/pending_order โดย pending order มี [buy stop, buy limit, sell stopm sell limit]
-7. คำนวน lot size จาก (((confidence_score คูณ max_risk_per_trade)/100) คูณ balance)/100
-8. create order สร้าง order สำหรับส่ง mt5 {symbol, entry, tp, sl, pending_order, volume, conmment} ส่ง mt5 algotrading โดยมีเงื่อนไข confidence > 50 & RR>1.5 ถึงส่ง order และ comment แสดงเหตุผลในการเข้า order
+1. fetch OHLCV, ยอดเงินในบัญชี balance data จาก mt5 เพิ่มข้อมูลไปในตาราง ถ้ายังไม่มีไฟล์ให้สร้างโดยตั้งชื่อไฟล์ว่า symbol_ohlcv เช่น xauusdm1752322800_ohlcv
+2. calculate indicators โดยใช้ data จาก raw_ohlcv สร้างไฟล์ใหม่ โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_indicators
+3. detect price pattern โดยใช้ data จาก raw_ohlcv สร้างไฟล์ใหม่ โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_pattern
+4. identify regime โดยใช้ data จาก indicators และ price pattern โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_regime
+5. confidence scoring โดยใช้ data จาก indicators และ price pattern โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_confidence
+6. select logic trade จาก regime หา entry/tp/sl/pending_order โดย pending order มี [buy stop, buy limit, sell stopm sell limit] โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_logicTrade
+7. คำนวน lot size จาก (((confidence_score คูณ max_risk_per_trade)/100) คูณ balance)/100 โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_logicTrade โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_lotSize
+8. create order สร้าง order สำหรับส่ง mt5 {symbol, entry, tp, sl, pending_order, volume, conmment} ส่ง mt5 algotrading โดยมีเงื่อนไข confidence > 50 & RR>1.5 ถึงส่ง order และ comment แสดงเหตุผลในการเข้า order โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800
 9. สร้าง notification ส่ง telegram
    ตัวอย่าง
    📅 2025-07-23T11:40:00.476543
@@ -20,7 +21,7 @@
 
 ⏰ order Timeframe: 1m
 ⚙️ logic_trade: scalp_1m
-📌 signal_id:xauusdm1m1753245600
+📌 order_id:xauusdm1m1753245600
 💰 entry: 3427.478
 🛑 sl: 3426.3012291715036
 🎯 tp: 3429.8315416569935
@@ -33,7 +34,7 @@
 
 ⏰ order Timeframe: 5m
 ⚙️ logic_trade: skip
-📌 signal_id:xauusdm5m1753245600
+📌 order_id:xauusdm5m1753245600
 💰 entry: none
 🛑 sl: none
 🎯 tp: none
@@ -43,7 +44,7 @@
 
 ⏰ order Timeframe: 15m
 ⚙️ logic_trade: trend_follow_15m
-📌 signal_id:xauusdm15m1753245600
+📌 order_id:xauusdm15m1753245600
 💰 entry: 3427.478
 🛑 sl: 3422.1584310916132
 🎯 tp: 3438.117137816774
@@ -56,7 +57,7 @@
 
 ⏰ order Timeframe: 1h
 ⚙️ logic_trade: skip_low_confidence
-📌 signal_id:xauusdm1h1753245600
+📌 order_id:xauusdm1h1753245600
 💰 entry: none
 🛑 sl: none
 🎯 tp: none
@@ -66,7 +67,7 @@
 
 ⏰ order Timeframe: 4h
 ⚙️ logic_trade: trend_follow_4h
-📌 signal_id:xauusdm4h1753245600
+📌 order_id:xauusdm4h1753245600
 💰 entry: 3427.478
 🛑 sl: 3406.53840083079
 🎯 tp: 3469.3571983384195
