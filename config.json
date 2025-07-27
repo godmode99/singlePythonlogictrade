@@ -3,8 +3,8 @@
         "interval": 300,
         "account_name": "DEMO_account",
         "notify": {
-            "telegram_order": { "enbled": true, "token": "", "chatid": "" },
-            "telegram_win_rate": { "enbled": true, "token": "", "chatid": "" }
+            "telegram_order": { "enabled": true, "token": "", "chatid": "" },
+            "telegram_win_rate": { "enabled": true, "token": "", "chatid": "" }
         }
     },
     "fetch": {
