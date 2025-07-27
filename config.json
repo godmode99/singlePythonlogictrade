@@ -1,0 +1,19 @@
+{
+  "symbol": "xauusd",
+  "timeframes": ["1m", "5m", "15m", "1h", "4h"],
+  "interval": 300,
+  "balance": 10000,
+  "risk_management": {"max_risk_per_trade": 0.7},
+  "paths": {
+    "raw_ohlcv": "Data/raw_OHLCV",
+    "indicators": "Data/process_data/indicators",
+    "patterns": "Data/process_data/price_pattern",
+    "regime": "Data/logic_trade_data/regime",
+    "confidence": "Data/logic_trade_data/confidence_score",
+    "logic_trade": "Data/logic_trade_data/logic_trade",
+    "lot_size": "Data/logic_trade_data/lot_size",
+    "orders": "Data/reportTrade_data/send_order_to_mt5",
+    "trade_history": "Data/reportTrade_data/raw_Trade_history",
+    "win_rate": "Data/reportTrade_data/winRate_data"
+  }
+}
