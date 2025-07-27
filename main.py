@@ -42,9 +42,10 @@ async def pipeline(config: dict):
         confidence_file = await confidence_scoring(symbol_save_file, tf, indicator_file, pattern_file, paths["confidence"], timestamp)
         logic_file = await select_logic_trade(symbol_save_file, tf, regime_file, paths["logic_trade"], timestamp)
         lot_file = await calculate_lot_size(symbol_save_file, tf, confidence_file, risk, balance, paths["lot_size"], timestamp)
-        order_file = await create_order(symbol_market, tf, logic_file, lot_file, paths["orders"], timestamp)
-        await fetch_trade_history(symbol_market, paths["trade_history"])
-        await update_win_rate(symbol_market, paths["win_rate"])
+        await create_order(symbol_market, tf, logic_file, lot_file, paths["orders"], timestamp)
+
+    await fetch_trade_history(symbol_market, paths["trade_history"])
+    await update_win_rate(symbol_market, paths["win_rate"])
 
 
 async def main():
