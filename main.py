@@ -24,30 +24,32 @@ def load_config(path: str = "config.json") -> dict:
 
 
 async def pipeline(config: dict):
-    symbol = config["symbol"].lower()
-    timeframes = config["timeframes"]
+    fetch_cfg = config["fetch"]
+    symbol_market = fetch_cfg["symbol_market"].lower()
+    symbol_save_file = fetch_cfg["symbol_save_file"].lower()
+    timeframes = [tf for tf, enabled in fetch_cfg["timeframes"].items() if enabled]
     paths = {k: Path(v) for k, v in config["paths"].items()}
-    risk = config["risk_management"]
+    risk = config["lot_size"]["risk_manage_timeframe"]
 
     balance = config.get("balance", 0)
     timestamp = int(time.time())
 
     for tf in timeframes:
-        ohclv_file = await fetch_ohlcv(symbol, tf, paths["raw_ohlcv"], timestamp)
-        indicator_file = await calculate_indicator(symbol, tf, ohclv_file, paths["indicators"], timestamp)
-        pattern_file = await detect_price_pattern(symbol, tf, ohclv_file, paths["patterns"], timestamp)
-        regime_file = await identify_regime(symbol, tf, indicator_file, pattern_file, paths["regime"], timestamp)
-        confidence_file = await confidence_scoring(symbol, tf, indicator_file, pattern_file, paths["confidence"], timestamp)
-        logic_file = await select_logic_trade(symbol, tf, regime_file, paths["logic_trade"], timestamp)
-        lot_file = await calculate_lot_size(symbol, tf, confidence_file, risk, balance, paths["lot_size"], timestamp)
-        order_file = await create_order(symbol, tf, logic_file, lot_file, paths["orders"], timestamp)
-        await fetch_trade_history(symbol, paths["trade_history"])
-        await update_win_rate(symbol, paths["win_rate"])
+        ohclv_file = await fetch_ohlcv(symbol_market, tf, paths["raw_ohlcv"], timestamp)
+        indicator_file = await calculate_indicator(symbol_save_file, tf, ohclv_file, paths["indicators"], timestamp)
+        pattern_file = await detect_price_pattern(symbol_save_file, tf, ohclv_file, paths["patterns"], timestamp)
+        regime_file = await identify_regime(symbol_save_file, tf, indicator_file, pattern_file, paths["regime"], timestamp)
+        confidence_file = await confidence_scoring(symbol_save_file, tf, indicator_file, pattern_file, paths["confidence"], timestamp)
+        logic_file = await select_logic_trade(symbol_save_file, tf, regime_file, paths["logic_trade"], timestamp)
+        lot_file = await calculate_lot_size(symbol_save_file, tf, confidence_file, risk, balance, paths["lot_size"], timestamp)
+        order_file = await create_order(symbol_market, tf, logic_file, lot_file, paths["orders"], timestamp)
+        await fetch_trade_history(symbol_market, paths["trade_history"])
+        await update_win_rate(symbol_market, paths["win_rate"])
 
 
 async def main():
     config = load_config()
-    interval = config.get("interval", 300)
+    interval = config.get("main", {}).get("interval", 300)
     while True:
         try:
             await pipeline(config)
