@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 async def update_win_rate(symbol: str, directory: Path) -> Path:
-    """Update win rate statistics from trade history."""
+    """Update win rate statistics and store to ``<symbol>_win_rate.csv``."""
     directory.mkdir(parents=True, exist_ok=True)
     filename = f"{symbol}_win_rate.csv"
     path = directory / filename
