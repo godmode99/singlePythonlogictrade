@@ -4,11 +4,17 @@ from pathlib import Path
 
 async def update_win_rate(symbol: str, directory: Path) -> Path:
     """Update win rate statistics and store to ``<symbol>_win_rate.csv``."""
-    directory.mkdir(parents=True, exist_ok=True)
-    filename = f"{symbol}_win_rate.csv"
-    path = directory / filename
-    if not path.exists():
-        logging.info("creating win rate file %s", path)
-        path.write_text("win_rate\n")
-    # placeholder for win rate calculation
-    return path
+    logging.info("start update_win_rate %s", symbol)
+    try:
+        directory.mkdir(parents=True, exist_ok=True)
+        filename = f"{symbol}_win_rate.csv"
+        path = directory / filename
+        if not path.exists():
+            logging.info("creating win rate file %s", path)
+            path.write_text("win_rate\n")
+        # placeholder for win rate calculation
+        logging.info("completed update_win_rate %s", symbol)
+        return path
+    except Exception:
+        logging.exception("error in update_win_rate %s", symbol)
+        raise
