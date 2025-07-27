@@ -146,7 +146,16 @@ async def pipeline(config: dict):
 
         try:
             logging.info("Creating order...")
-            await create_order(symbol_save_file, tf, logic_file, lot_file, paths["orders"], timestamp)
+            await create_order(
+                symbol_save_file,
+                tf,
+                logic_file,
+                lot_file,
+                paths["orders"],
+                timestamp,
+                main_cfg.get("notify", {}).get("telegram_order", {}),
+                main_cfg.get("account_name", ""),
+            )
             logging.info("Creating order complete")
         except Exception:
             logging.exception("Creating order failed")

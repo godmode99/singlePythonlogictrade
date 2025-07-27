@@ -1,3 +1,4 @@
+import json
 import logging
 from pathlib import Path
 
@@ -12,15 +13,15 @@ async def calculate_lot_size(
     timestamp: int,
     max_confidence_score: int,
 ) -> Path:
-    """Calculate lot size and store to ``<symbol><timestamp>_lotSize.csv``."""
+    """Calculate lot size and store to ``<symbol><timestamp>_lotSize.json``."""
     logging.info("start calculate_lot_size %s %s", symbol, timeframe)
     try:
         directory.mkdir(parents=True, exist_ok=True)
-        filename = f"{symbol}{timestamp}_lotSize.csv"
+        filename = f"{symbol}{timestamp}_lotSize.json"
         path = directory / filename
         if not path.exists():
             logging.info("creating lot size file %s", path)
-            path.write_text("lot_size\n")
+            path.write_text("{}")
 
         try:
             confidence = float(confidence_file.read_text().strip())
@@ -29,7 +30,8 @@ async def calculate_lot_size(
 
         risk = risk_cfg.get(timeframe, {}).get("max_risk_per_trade_free_margin", 0)
         lot = balance * (confidence / max_confidence_score) * (risk / 100)
-        path.write_text(f"{lot}\n")
+        data = {"lot": lot, "risk_per_trade": risk}
+        path.write_text(json.dumps(data))
 
         logging.info("completed calculate_lot_size %s %s", symbol, timeframe)
         return path
