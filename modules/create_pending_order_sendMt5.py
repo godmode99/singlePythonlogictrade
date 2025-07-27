@@ -18,7 +18,7 @@ async def send_mt5(order: dict) -> bool:
 
 async def send_telegram(cfg: dict, text: str) -> bool:
     """Send a telegram message using the provided configuration."""
-    if not cfg.get("enbled"):
+    if not cfg.get("enabled"):
         return False
     token = cfg.get("token")
     chat_id = cfg.get("chatid")
