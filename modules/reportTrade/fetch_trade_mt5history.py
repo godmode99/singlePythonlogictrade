@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 async def fetch_trade_history(symbol: str, directory: Path) -> Path:
-    """Fetch trade history from MT5 account."""
+    """Fetch trade history from MT5 account and store to ``<symbol>_trade_history.csv``."""
     directory.mkdir(parents=True, exist_ok=True)
     filename = f"{symbol}_trade_history.csv"
     path = directory / filename
