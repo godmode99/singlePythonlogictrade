@@ -26,13 +26,16 @@ def load_config(path: str = "config.json") -> dict:
 async def pipeline(config: dict):
     main_cfg = config["main"]
     fetch_cfg = config["fetch"]
-    lot_size = config["lot_size"]["risk_manage_timeframe"]
+    lot_size_cfg = config["lot_size"]["risk_manage_timeframe"]
+    max_conf_score = config["lot_size"].get("max_confidence_score", 100)
 
     symbol_save_file = fetch_cfg["symbol_save_file"].lower()
     timeframes = [tf for tf, enabled in fetch_cfg["timeframes"].items() if enabled]
     paths = {k: Path(v) for k, v in config["paths"].items()}
 
     balance = main_cfg.get("balance", 0)
+    fetch_bars = fetch_cfg.get("fetch_bars", 0)
+    tz_shift = fetch_cfg.get("tz_shift", 0)
     timestamp = int(time.time())
 
     for tf in timeframes:
@@ -40,7 +43,15 @@ async def pipeline(config: dict):
 
         try:
             logging.info("Fetching OHLCV...")
-            ohclv_file = await fetch_ohlcv(symbol_save_file, tf, paths["raw_ohlcv"], timestamp)
+            ohclv_file = await fetch_ohlcv(
+                symbol_save_file,
+                tf,
+                paths["raw_ohlcv"],
+                timestamp,
+                fetch_bars,
+                tz_shift,
+                balance,
+            )
             logging.info("Fetching OHLCV complete")
         except Exception:
             logging.exception("Fetching OHLCV failed")
@@ -48,7 +59,14 @@ async def pipeline(config: dict):
 
         try:
             logging.info("Calculating indicators...")
-            indicator_file = await calculate_indicator(symbol_save_file, tf, ohclv_file, paths["indicators"], timestamp)
+            indicator_file = await calculate_indicator(
+                symbol_save_file,
+                tf,
+                ohclv_file,
+                paths["indicators"],
+                timestamp,
+                config["indicators"]["enabled"],
+            )
             logging.info("Calculating indicators complete")
         except Exception:
             logging.exception("Calculating indicators failed")
@@ -56,7 +74,14 @@ async def pipeline(config: dict):
 
         try:
             logging.info("Detecting patterns...")
-            pattern_file = await detect_price_pattern(symbol_save_file, tf, ohclv_file, paths["patterns"], timestamp)
+            pattern_file = await detect_price_pattern(
+                symbol_save_file,
+                tf,
+                ohclv_file,
+                paths["patterns"],
+                timestamp,
+                config["patterns"]["enabled"],
+            )
             logging.info("Detecting patterns complete")
         except Exception:
             logging.exception("Detecting patterns failed")
@@ -64,7 +89,15 @@ async def pipeline(config: dict):
 
         try:
             logging.info("Identifying regime...")
-            regime_file = await identify_regime(symbol_save_file, tf, indicator_file, pattern_file, paths["regime"], timestamp)
+            regime_file = await identify_regime(
+                symbol_save_file,
+                tf,
+                indicator_file,
+                pattern_file,
+                paths["regime"],
+                timestamp,
+                config["regime"],
+            )
             logging.info("Identifying regime complete")
         except Exception:
             logging.exception("Identifying regime failed")
@@ -72,7 +105,15 @@ async def pipeline(config: dict):
 
         try:
             logging.info("Scoring confidence...")
-            confidence_file = await confidence_scoring(symbol_save_file, tf, indicator_file, pattern_file, paths["confidence"], timestamp)
+            confidence_file = await confidence_scoring(
+                symbol_save_file,
+                tf,
+                indicator_file,
+                pattern_file,
+                paths["confidence"],
+                timestamp,
+                config["confidence"],
+            )
             logging.info("Scoring confidence complete")
         except Exception:
             logging.exception("Scoring confidence failed")
@@ -88,7 +129,16 @@ async def pipeline(config: dict):
 
         try:
             logging.info("Calculating lot size...")
-            lot_file = await calculate_lot_size(symbol_save_file, tf, confidence_file, lot_size, balance, paths["lot_size"], timestamp)
+            lot_file = await calculate_lot_size(
+                symbol_save_file,
+                tf,
+                confidence_file,
+                lot_size_cfg,
+                balance,
+                paths["lot_size"],
+                timestamp,
+                max_conf_score,
+            )
             logging.info("Calculating lot size complete")
         except Exception:
             logging.exception("Calculating lot size failed")
