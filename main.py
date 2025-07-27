@@ -38,6 +38,9 @@ async def pipeline(config: dict):
     tz_shift = fetch_cfg.get("tz_shift", 0)
     timestamp = int(time.time())
 
+    telegram_order_cfg = main_cfg.get("notify", {}).get("telegram_order", {})
+    telegram_win_cfg = main_cfg.get("notify", {}).get("telegram_win_rate", {})
+
     for tf in timeframes:
         logging.info("processing timeframe %s", tf)
 
@@ -153,7 +156,7 @@ async def pipeline(config: dict):
                 lot_file,
                 paths["orders"],
                 timestamp,
-                main_cfg.get("notify", {}).get("telegram_order", {}),
+                telegram_order_cfg,
                 main_cfg.get("account_name", ""),
             )
             logging.info("Creating order complete")
@@ -169,7 +172,7 @@ async def pipeline(config: dict):
 
     try:
         logging.info("Updating win rate...")
-        await update_win_rate(symbol_save_file, paths["win_rate"])
+        await update_win_rate(symbol_save_file, paths["win_rate"], telegram_win_cfg)
         logging.info("Updating win rate complete")
     except Exception:
         logging.exception("Updating win rate failed")
