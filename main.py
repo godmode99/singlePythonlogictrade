@@ -23,24 +23,11 @@ def load_config(path: str = "config.json") -> dict:
         return json.load(f)
 
 
-async def run_step(coro, name: str):
-    """Run a pipeline step and log the outcome."""
-    logging.info("starting %s", name)
-    try:
-        result = await coro
-        logging.info("%s success", name)
-        return result, True
-    except Exception:
-        logging.exception("%s failed", name)
-        return None, False
-
-
 async def pipeline(config: dict):
     main_cfg = config["main"]
     fetch_cfg = config["fetch"]
     lot_size = config["lot_size"]["risk_manage_timeframe"]
 
-    symbol_market = fetch_cfg["symbol_market"].lower()
     symbol_save_file = fetch_cfg["symbol_save_file"].lower()
     timeframes = [tf for tf, enabled in fetch_cfg["timeframes"].items() if enabled]
     paths = {k: Path(v) for k, v in config["paths"].items()}
@@ -50,31 +37,83 @@ async def pipeline(config: dict):
 
     for tf in timeframes:
         logging.info("processing timeframe %s", tf)
-        ohclv_file, ok = await run_step(fetch_ohlcv(symbol_save_file, tf, paths["raw_ohlcv"], timestamp), f"fetch_ohlcv {tf}")
-        if not ok:
-            continue
-        indicator_file, ok = await run_step(calculate_indicator(symbol_save_file, tf, ohclv_file, paths["indicators"], timestamp), f"calculate_indicator {tf}")
-        if not ok:
-            continue
-        pattern_file, ok = await run_step(detect_price_pattern(symbol_save_file, tf, ohclv_file, paths["patterns"], timestamp), f"detect_price_pattern {tf}")
-        if not ok:
-            continue
-        regime_file, ok = await run_step(identify_regime(symbol_save_file, tf, indicator_file, pattern_file, paths["regime"], timestamp), f"identify_regime {tf}")
-        if not ok:
-            continue
-        confidence_file, ok = await run_step(confidence_scoring(symbol_save_file, tf, indicator_file, pattern_file, paths["confidence"], timestamp), f"confidence_scoring {tf}")
-        if not ok:
-            continue
-        logic_file, ok = await run_step(select_logic_trade(symbol_save_file, tf, regime_file, paths["logic_trade"], timestamp), f"select_logic_trade {tf}")
-        if not ok:
-            continue
-        lot_file, ok = await run_step(calculate_lot_size(symbol_save_file, tf, confidence_file, lot_size, balance, paths["lot_size"], timestamp), f"calculate_lot_size {tf}")
-        if not ok:
-            continue
-        await run_step(create_order(symbol_save_file, tf, logic_file, lot_file, paths["orders"], timestamp), f"create_order {tf}")
 
-    await run_step(fetch_trade_history(symbol_save_file, paths["trade_history"]), "fetch_trade_history")
-    await run_step(update_win_rate(symbol_save_file, paths["win_rate"]), "update_win_rate")
+        try:
+            logging.info("Fetching OHLCV...")
+            ohclv_file = await fetch_ohlcv(symbol_save_file, tf, paths["raw_ohlcv"], timestamp)
+            logging.info("Fetching OHLCV complete")
+        except Exception:
+            logging.exception("Fetching OHLCV failed")
+            continue
+
+        try:
+            logging.info("Calculating indicators...")
+            indicator_file = await calculate_indicator(symbol_save_file, tf, ohclv_file, paths["indicators"], timestamp)
+            logging.info("Calculating indicators complete")
+        except Exception:
+            logging.exception("Calculating indicators failed")
+            continue
+
+        try:
+            logging.info("Detecting patterns...")
+            pattern_file = await detect_price_pattern(symbol_save_file, tf, ohclv_file, paths["patterns"], timestamp)
+            logging.info("Detecting patterns complete")
+        except Exception:
+            logging.exception("Detecting patterns failed")
+            continue
+
+        try:
+            logging.info("Identifying regime...")
+            regime_file = await identify_regime(symbol_save_file, tf, indicator_file, pattern_file, paths["regime"], timestamp)
+            logging.info("Identifying regime complete")
+        except Exception:
+            logging.exception("Identifying regime failed")
+            continue
+
+        try:
+            logging.info("Scoring confidence...")
+            confidence_file = await confidence_scoring(symbol_save_file, tf, indicator_file, pattern_file, paths["confidence"], timestamp)
+            logging.info("Scoring confidence complete")
+        except Exception:
+            logging.exception("Scoring confidence failed")
+            continue
+
+        try:
+            logging.info("Selecting logic trade...")
+            logic_file = await select_logic_trade(symbol_save_file, tf, regime_file, paths["logic_trade"], timestamp)
+            logging.info("Selecting logic trade complete")
+        except Exception:
+            logging.exception("Selecting logic trade failed")
+            continue
+
+        try:
+            logging.info("Calculating lot size...")
+            lot_file = await calculate_lot_size(symbol_save_file, tf, confidence_file, lot_size, balance, paths["lot_size"], timestamp)
+            logging.info("Calculating lot size complete")
+        except Exception:
+            logging.exception("Calculating lot size failed")
+            continue
+
+        try:
+            logging.info("Creating order...")
+            await create_order(symbol_save_file, tf, logic_file, lot_file, paths["orders"], timestamp)
+            logging.info("Creating order complete")
+        except Exception:
+            logging.exception("Creating order failed")
+
+    try:
+        logging.info("Fetching trade history...")
+        await fetch_trade_history(symbol_save_file, paths["trade_history"])
+        logging.info("Fetching trade history complete")
+    except Exception:
+        logging.exception("Fetching trade history failed")
+
+    try:
+        logging.info("Updating win rate...")
+        await update_win_rate(symbol_save_file, paths["win_rate"])
+        logging.info("Updating win rate complete")
+    except Exception:
+        logging.exception("Updating win rate failed")
 
 
 async def main():
