@@ -10,7 +10,7 @@
 4. identify regime โดยใช้ data จาก indicators และ price pattern โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_regime
 5. confidence scoring โดยใช้ data จาก indicators และ price pattern โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_confidence
 6. select logic trade จาก regime หา entry/tp/sl/pending_order โดย pending order มี [buy stop, buy limit, sell stopm sell limit] โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_logicTrade
-7. คำนวน lot size จาก (((confidence_score คูณ max_risk_per_trade)/100) คูณ balance)/100 โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_logicTrade โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_lotSize
+7. คำนวน lot size จาก (((confidence_score คูณ max_risk_per_trade)/100) คูณ free margin)/100 โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_logicTrade โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_lotSize
 8. create order สร้าง order สำหรับส่ง mt5 {symbol, entry, tp, sl, pending_order, volume, conmment} ส่ง mt5 algotrading โดยมีเงื่อนไข confidence > 50 & RR>1.5 ถึงส่ง order และ comment แสดงเหตุผลในการเข้า order โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800
 9. สร้าง notification ส่ง telegram
    ตัวอย่าง

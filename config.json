@@ -1,19 +1,110 @@
 {
-  "symbol": "xauusd",
-  "timeframes": ["1m", "5m", "15m", "1h", "4h"],
-  "interval": 300,
-  "balance": 10000,
-  "risk_management": {"max_risk_per_trade": 0.7},
-  "paths": {
-    "raw_ohlcv": "Data/raw_OHLCV",
-    "indicators": "Data/process_data/indicators",
-    "patterns": "Data/process_data/price_pattern",
-    "regime": "Data/logic_trade_data/regime",
-    "confidence": "Data/logic_trade_data/confidence_score",
-    "logic_trade": "Data/logic_trade_data/logic_trade",
-    "lot_size": "Data/logic_trade_data/lot_size",
-    "orders": "Data/reportTrade_data/send_order_to_mt5",
-    "trade_history": "Data/reportTrade_data/raw_Trade_history",
-    "win_rate": "Data/reportTrade_data/winRate_data"
-  }
+    "main": {
+        "interval": 300,
+        "account_name": "DEMO_account",
+        "notify": {
+            "telegram_order": { "enbled": true, "token": "", "chatid": "" },
+            "telegram_win_rate": { "enbled": true, "token": "", "chatid": "" }
+        }
+    },
+    "fetch": {
+        "symbol_market": "xauusdm",
+        "symbol_save_file": "xauusd",
+        "timeframes": { "1m": true, "5m": true, "15m": true, "1h": true, "4h": true },
+        "tz_shift": 7,
+        "fetch_bars": 200,
+        "freeMargin": "use_from_account_info_margin_free"
+    },
+    "indicators": {
+        "enabled": {
+            "atr14": true,
+            "rsi14": true,
+            "sma20": true,
+            "ema50": true,
+            "sma200": true
+        }
+    },
+    "patterns": {
+        "enabled": {
+            "HH_HL": true,
+            "LL_LH": true,
+            "bullish_engulfing": true,
+            "bearish_engulfing": true,
+            "momentum_up": true,
+            "momentum_down": true,
+            "breakout_up": true,
+            "breakout_down": true,
+            "fake_breakout_up": true,
+            "fake_breakout_down": true
+        }
+    },
+    "regime": {
+        "uptrend": {
+            "indicators_uptrend_Maxscore": 40,
+            "price_pattern_uptrend_Maxscore": 40,
+            "volume_uptrend_score": 20
+        },
+        "downtrend": {
+            "indicators_downtrend_Maxscore": 40,
+            "price_pattern_downtrend_Maxscore": 40,
+            "volume_downtrend_score": 20
+        },
+        "sideway": {
+            "indicators_sideway_score": 40,
+            "price_pattern_sideway_score": 40,
+            "volume_sideway_score": 20
+        },
+        "volatility": {
+            "indicators_volatility_score": 40,
+            "price_pattern_volatility_score": 40,
+            "volume_sideway_score": 20
+        }
+    },
+    "confidence": {
+        "lower_timeframe_regime_weight": 20,
+        "higher_timeframe_regime_weight": 20,
+        "confilct_timeframe_regime_weight": 20,
+        "this_regime_score_weight": 40
+    },
+    "logic_trade": {
+        "uptrend": {
+            "5m": "uptrend_5m",
+            "15m": "uptrend_15m",
+            "1h": "uptrend_1h",
+            "4h": "uptrend_4h"
+        },
+        "downtrend": {
+            "5m": "downtrend_5m",
+            "15m": "downtrend_15m",
+            "1h": "downtrend_1h",
+            "4h": "downtrend_4h"
+        },
+        "sideway": {
+            "5m": "sideway_5m",
+            "15m": "sideway_15m",
+            "1h": "sideway_1h",
+            "4h": "sideway_4h"
+        }
+    },
+    "lot_size": {
+        "risk_manage_timeframe": {
+            "5m": { "max_risk_per_trade_free_margin": 0.5 },
+            "15m": { "max_risk_per_trade_free_margin": 1.0 },
+            "1h": { "max_risk_per_trade_free_margin": 1.5 },
+            "4h": { "max_risk_per_trade_free_margin": 2.0 }
+        },
+        "max_confidence_score": 100
+    },
+    "paths": {
+        "raw_ohlcv": "Data/raw_OHLCV",
+        "indicators": "Data/process_data/indicators",
+        "patterns": "Data/process_data/price_pattern",
+        "regime": "Data/logic_trade_data/regime",
+        "confidence": "Data/logic_trade_data/confidence_score",
+        "logic_trade": "Data/logic_trade_data/logic_trade",
+        "lot_size": "Data/logic_trade_data/lot_size",
+        "orders": "Data/reportTrade_data/send_order_to_mt5",
+        "trade_history": "Data/reportTrade_data/raw_Trade_history",
+        "win_rate": "Data/reportTrade_data/winRate_data"
+    }
 }
