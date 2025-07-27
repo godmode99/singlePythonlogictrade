@@ -36,14 +36,16 @@ async def run_step(coro, name: str):
 
 
 async def pipeline(config: dict):
+    main_cfg = config["main"]
     fetch_cfg = config["fetch"]
+    lot_size = config["lot_size"]["risk_manage_timeframe"]
+
     symbol_market = fetch_cfg["symbol_market"].lower()
     symbol_save_file = fetch_cfg["symbol_save_file"].lower()
     timeframes = [tf for tf, enabled in fetch_cfg["timeframes"].items() if enabled]
     paths = {k: Path(v) for k, v in config["paths"].items()}
-    risk = config["lot_size"]["risk_manage_timeframe"]
 
-    balance = config.get("balance", 0)
+    balance = main_cfg.get("balance", 0)
     timestamp = int(time.time())
 
     for tf in timeframes:
@@ -66,7 +68,7 @@ async def pipeline(config: dict):
         logic_file, ok = await run_step(select_logic_trade(symbol_save_file, tf, regime_file, paths["logic_trade"], timestamp), f"select_logic_trade {tf}")
         if not ok:
             continue
-        lot_file, ok = await run_step(calculate_lot_size(symbol_save_file, tf, confidence_file, risk, balance, paths["lot_size"], timestamp), f"calculate_lot_size {tf}")
+        lot_file, ok = await run_step(calculate_lot_size(symbol_save_file, tf, confidence_file, lot_size, balance, paths["lot_size"], timestamp), f"calculate_lot_size {tf}")
         if not ok:
             continue
         await run_step(create_order(symbol_save_file, tf, logic_file, lot_file, paths["orders"], timestamp), f"create_order {tf}")
@@ -77,7 +79,8 @@ async def pipeline(config: dict):
 
 async def main():
     config = load_config()
-    interval = config.get("main", {}).get("interval", 300)
+    main_cfg = config.get("main", {})
+    interval = main_cfg.get("interval", 300)
     while True:
         try:
             await pipeline(config)
