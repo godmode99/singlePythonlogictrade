@@ -7,7 +7,7 @@
 1. fetch OHLCV, ยอดเงินในบัญชี balance data จาก mt5 เพิ่มข้อมูลไปในตาราง ถ้ายังไม่มีไฟล์ให้สร้างโดยตั้งชื่อไฟล์ว่า symbol_ohlcv เช่น xauusdm1752322800_ohlcv
 2. calculate indicators โดยใช้ data จาก raw_ohlcv สร้างไฟล์ใหม่ โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_indicators
 3. detect price pattern โดยใช้ data จาก raw_ohlcv สร้างไฟล์ใหม่ โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_pattern
-4. identify regime โดยใช้ data จาก indicators และ price pattern โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_regime
+4. identify regime โดยใช้ data จาก ohlcv, indicators และ price pattern โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_regime
 5. confidence scoring โดยใช้ data จาก indicators และ price pattern โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_confidence
 6. select logic trade จาก regime หา entry/tp/sl/pending_order โดย pending order มี [buy stop, buy limit, sell stopm sell limit] โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_logicTrade
 7. คำนวน lot size จาก (((confidence_score คูณ max_risk_per_trade)/100) คูณ free margin)/100 โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_logicTrade โดยตั้งชื่อไฟล์ว่า symbol+unix time เช่น xauusdm1752322800_lotSize
@@ -85,3 +85,29 @@
 config.json
 
 1. แบ่งหมวดหมู่หรือจัดกลุ่มตามการตั้งค่าตาม modules และ main.py
+
+วิธีการระบุ regime ในแต่ละ timeframe
+
+1. แต่ละ timeframe มีค่า ohlcv, indicator และ price pattern ของตัวเอง
+2. ใช้ regime rules ในการหา pattern ของแต่ละ regime จากค่าต่างๆ เพื่อระบุ regime type
+3. สร้างกฎในการให้คะแนนความแข็งแรงของ regime ที่ระบุ โดยใช้เงื่อนไขความสอดคล้อง indicators ขัดกันเองไหม, price pattern ขัดกันเองไหม รวมคะแนน จาก indicators และ price pattern เช่น 15m | uptrend strong 60 scores| indicators 30 scores | price pattern 30 scores |
+
+วิธีการให้คะแนน confidence
+
+1. แต่ละ timeframe จะมี 1 regime
+2. นำเอาค่า regime จากแต่ละ timeframe ทีใหญ่กว่าและเล็กกว่า
+3. สร้างกฎให้คะแนน โดยประเมินว่าขัดแย้งหรือตามให้ confidence score
+
+วิธีการเลือก logic trade
+
+1. แต่ละ regime ของแต่ละ timeframe จะมี 1 logic trade เช่น 15m_uptrend
+2. ภายใน 1 logic trade จะมีหลายเงื่อนไข เช่น pending order ที่จุดที่ราคาน่าจะกลับตัวสั้น, pending order ที่จุดที่ราคาน่าจะกลับตัวไกล, pending order ที่จุดที่ราคาน่าจะทะลุไปต่อ, pending order ที่จุดที่ราคาน่ากลับเข้ากรอบ
+3. สร้างกฎในการเลือกแต่ละเงื่อนไขใน logic trade ของแต่ละ timeframe
+
+วิธีการ send order ไป mt5
+
+1. คำนวน lot size จาก (((confidence_score คูณ max_risk_per_trade)/100) คูณ free margin)/100
+2. สร้าง order สำหรับส่งไป mt5 algo trading
+3. หาก pending order ไม่สำหรับ ให้ adjust สลับคำสั่ง pending order limit <> stop
+4. หาก สลับแล้วยังไม่สำเร็จ ให้แสดงค่าว่าเป็น failed
+5. สรุปผลการทำงานไป telegram
